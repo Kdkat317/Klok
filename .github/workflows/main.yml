@@ -1,0 +1,93 @@
+name: Build Klock Android APK & Widgets
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Generate Complete Android Project & Build APK
+        run: |
+          mkdir -p android-project/app/src/main/java/com/klock/vedic
+          mkdir -p android-project/app/src/main/res/layout
+          mkdir -p android-project/app/src/main/res/xml
+          mkdir -p android-project/app/src/main/assets
+
+          if [ -f "index.html" ]; then
+            cp index.html android-project/app/src/main/assets/index.html
+          else
+            echo "<!DOCTYPE html><html><body><h1>Klock</h1></body></html>" > android-project/app/src/main/assets/index.html
+          fi
+
+          cat << 'EOF' > android-project/settings.gradle.kts
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
+          rootProject.name = "KlockVedic"
+          include(":app")
+          EOF
+
+          cat << 'EOF' > android-project/build.gradle.kts
+          plugins {
+              id("com.android.application") version "8.3.2" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.22" apply false
+          }
+          EOF
+
+          cat << 'EOF' > android-project/app/build.gradle.kts
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
+          android {
+              namespace = "com.klock.vedic"
+              compileSdk = 34
+              defaultConfig {
+                  applicationId = "com.klock.vedic"
+                  minSdk = 26
+                  targetSdk = 34
+                  versionCode = 1
+                  versionName = "1.0.0"
+              }
+              buildTypes { release { isMinifyEnabled = false } }
+              compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+              kotlinOptions { jvmTarget = "17" }
+          }
+          dependencies {
+              implementation("androidx.core:core-ktx:1.12.0")
+              implementation("androidx.appcompat:appcompat:1.6.1")
+          }
+          EOF
+
+          cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+              <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+              <application android:allowBackup="true" android:label="Klock" android:supportsRtl="true" android:theme="@style/Theme.AppCompat.NoActionBar">
+                  <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+                  <receiver android:name=".CompactKlockWidget" android:exported="true" android:label="Klock Compact (2x1)">
+                      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+                      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_info_compact" />
+                  </receiver>
+                  <receiver android:name=".MediumKlockWidget" android:exported="true" android:label="Klock Medium (4x2)">
+                      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+                      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_info_medium" />
+                  </receiver>
+                  <receiver android:name=".LargeKlockWidget" android:exported="true" android:label="Klock Large (4x
