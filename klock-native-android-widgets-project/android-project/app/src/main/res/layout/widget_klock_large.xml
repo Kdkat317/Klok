@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:orientation="vertical"
+    android:padding="16dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="KLOCK • AHORĀTRA PROGRESS"
+        android:textColor="#FF9500"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/tv_vedic_main"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="00 : 00"
+        android:textColor="#FFFFFF"
+        android:textSize="38sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/tv_civil_sub"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Local Time: 00:00"
+        android:textColor="#9898A2"
+        android:textSize="13sp" />
+    <ProgressBar
+        android:id="@+id/pb_day_cycle"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="12dp"
+        android:max="100"
+        android:progress="50"
+        android:progressTint="#FF9500" />
+    <TextView
+        android:id="@+id/tv_cycle_pct"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="1 Ghaṭī = 24m • 1 Pala = 24s"
+        android:textColor="#9898A2"
+        android:textSize="11sp" />
+</LinearLayout>

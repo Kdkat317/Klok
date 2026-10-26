@@ -1,0 +1,2813 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="oled" data-mode="dark" data-numeral-style="solid" data-font-scale="default">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Klock — Vedic Timekeeping</title>
+  <style>
+    /* ==========================================================================
+       1. DESIGN SYSTEM TOKENS & RESET
+       ========================================================================== */
+    :root {
+      --accent: #FF9500;
+      --accent-rgb: 255, 149, 0;
+      --accent-soft: rgba(255, 149, 0, 0.16);
+      --danger: #FF453A;
+      --success: #32D74B;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
+      --scale-factor: 1;
+      --safe-top: env(safe-area-inset-top, 12px);
+      --safe-bottom: env(safe-area-inset-bottom, 16px);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --transition-fast: 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    html[data-font-scale="small"] { --scale-factor: 0.9; }
+    html[data-font-scale="default"] { --scale-factor: 1; }
+    html[data-font-scale="large"] { --scale-factor: 1.1; }
+    html[data-font-scale="xlarge"] { --scale-factor: 1.18; }
+
+    /* THEME 1: OLED Minimal (Dark) */
+    html[data-theme="oled"][data-mode="dark"] {
+      --bg-primary: #000000;
+      --bg-elevated: #111114;
+      --bg-card: #16161A;
+      --bg-card-hover: #1E1E24;
+      --bg-nav: rgba(22, 22, 26, 0.88);
+      --text-primary: #FFFFFF;
+      --text-secondary: #9898A2;
+      --text-muted: #5C5C66;
+      --border-subtle: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --card-blur: none;
+      --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.6);
+      --bg-gradient: radial-gradient(circle at 50% 0%, rgba(var(--accent-rgb), 0.12) 0%, transparent 58%);
+    }
+
+    /* THEME 2: Immersive Glassmorphism (Dark Indigo-Violet) */
+    html[data-theme="glass"][data-mode="dark"] {
+      --bg-primary: #0F0C24;
+      --bg-elevated: rgba(255, 255, 255, 0.07);
+      --bg-card: rgba(28, 25, 58, 0.56);
+      --bg-card-hover: rgba(42, 38, 82, 0.68);
+      --bg-nav: rgba(22, 18, 48, 0.78);
+      --text-primary: #F8FAFC;
+      --text-secondary: #B8BCE0;
+      --text-muted: #787CA8;
+      --border-subtle: rgba(255, 255, 255, 0.15);
+      --border-strong: rgba(255, 255, 255, 0.28);
+      --card-blur: blur(20px) saturate(160%);
+      --shadow-card: 0 12px 32px rgba(5, 3, 20, 0.45);
+      --bg-gradient:
+        radial-gradient(circle at 18% 12%, rgba(var(--accent-rgb), 0.28) 0%, transparent 45%),
+        radial-gradient(circle at 85% 24%, rgba(124, 58, 237, 0.35) 0%, transparent 52%),
+        linear-gradient(165deg, #130F2E 0%, #1E1646 48%, #0B091B 100%);
+    }
+
+    /* THEME 1: OLED Minimal (Light Mode counterpart) */
+    html[data-theme="oled"][data-mode="light"] {
+      --bg-primary: #F5F5F7;
+      --bg-elevated: #FFFFFF;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #EFEFF4;
+      --bg-nav: rgba(255, 255, 255, 0.9);
+      --text-primary: #111114;
+      --text-secondary: #5A5A66;
+      --text-muted: #8E8E99;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.16);
+      --card-blur: none;
+      --shadow-card: 0 4px 18px rgba(0, 0, 0, 0.06);
+      --bg-gradient: radial-gradient(circle at 50% 0%, rgba(var(--accent-rgb), 0.1) 0%, transparent 55%);
+    }
+
+    /* THEME 2: Immersive Glassmorphism (Light Mode counterpart) */
+    html[data-theme="glass"][data-mode="light"] {
+      --bg-primary: #E8ECFA;
+      --bg-elevated: rgba(255, 255, 255, 0.65);
+      --bg-card: rgba(255, 255, 255, 0.58);
+      --bg-card-hover: rgba(255, 255, 255, 0.78);
+      --bg-nav: rgba(255, 255, 255, 0.8);
+      --text-primary: #16142E;
+      --text-secondary: #4A486E;
+      --text-muted: #7A789E;
+      --border-subtle: rgba(255, 255, 255, 0.65);
+      --border-strong: rgba(99, 102, 241, 0.25);
+      --card-blur: blur(20px) saturate(160%);
+      --shadow-card: 0 10px 28px rgba(45, 40, 105, 0.1);
+      --bg-gradient:
+        radial-gradient(circle at 15% 15%, rgba(var(--accent-rgb), 0.22) 0%, transparent 45%),
+        radial-gradient(circle at 85% 20%, rgba(99, 102, 241, 0.24) 0%, transparent 50%),
+        linear-gradient(165deg, #EEF2FF 0%, #E0E7FF 50%, #F3E8FF 100%);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      background-color: var(--bg-primary);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: calc(16px * var(--scale-factor));
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .app-shell {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      padding-top: calc(var(--safe-top) + 8px);
+      padding-bottom: calc(var(--safe-bottom) + 92px);
+      padding-left: 16px;
+      padding-right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 2px;
+      gap: 8px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(var(--accent-rgb), 0.4);
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-pill-btn {
+      min-height: 40px;
+      padding: 0 13px;
+      border-radius: 999px;
+      background: var(--bg-card);
+      backdrop-filter: var(--card-blur);
+      -webkit-backdrop-filter: var(--card-blur);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+    }
+
+    .icon-pill-btn:active {
+      transform: scale(0.96);
+    }
+
+    .icon-pill-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: var(--card-blur);
+      -webkit-backdrop-filter: var(--card-blur);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .card-compact {
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(var(--accent-rgb), 0.3);
+    }
+
+    .segmented-row {
+      display: flex;
+      background: var(--bg-elevated);
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      gap: 4px;
+    }
+
+    .segment-btn {
+      flex: 1;
+      min-height: 36px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-align: center;
+      transition: all var(--transition-fast);
+    }
+
+    .segment-btn.active {
+      background: var(--accent);
+      color: #000000;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #000000;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform var(--transition-fast), opacity var(--transition-fast);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.97);
+    }
+
+    .btn-secondary {
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .hero-clock-card {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 16px 18px;
+    }
+
+    .hero-top-meta {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ring-stage {
+      position: relative;
+      width: min(276px, 76vw);
+      height: min(276px, 76vw);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 4px 0 10px;
+    }
+
+    .progress-ring-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .ring-track {
+      fill: none;
+      stroke: var(--border-subtle);
+      stroke-width: 6;
+    }
+
+    .ring-progress {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.35s linear;
+    }
+
+    .ring-inner-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .vedic-Units-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .vedic-unit-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .vedic-digits {
+      font-family: var(--font-sans);
+      font-size: clamp(2.55rem, 11vw, 3.45rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-primary);
+    }
+
+    .vedic-digits.vipala-digits {
+      font-size: clamp(1.45rem, 6vw, 1.9rem);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    html[data-numeral-style="outlined"] .vedic-digits {
+      color: transparent;
+      -webkit-text-stroke: 2px var(--text-primary);
+      text-shadow: 0 0 24px rgba(var(--accent-rgb), 0.25);
+    }
+
+    html[data-numeral-style="outlined"] .vedic-digits.vipala-digits {
+      color: transparent;
+      -webkit-text-stroke: 1.5px var(--accent);
+    }
+
+    .vedic-colon {
+      font-size: clamp(1.8rem, 8vw, 2.4rem);
+      font-weight: 700;
+      color: var(--accent);
+      transform: translateY(-4px);
+    }
+
+    .unit-label {
+      margin-top: 5px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .unit-deva {
+      display: none;
+      font-size: 0.7rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    html[data-show-deva="true"] .unit-deva {
+      display: inline;
+      margin-left: 3px;
+    }
+
+    .secondary-civil-clock {
+      margin-top: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .muhurta-pill {
+      margin-top: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .cycle-stats-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .stat-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 0.86rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .linear-progress-wrap {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .linear-bar-bg {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--border-subtle);
+      overflow: hidden;
+    }
+
+    .linear-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width 0.35s linear;
+    }
+
+    .converter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-label {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .field-input {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .field-input:focus {
+      border-color: var(--accent);
+    }
+
+    .reference-pills {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .ref-pill {
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+    }
+
+    .ref-pill strong {
+      color: var(--accent);
+    }
+
+    .world-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .city-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 4px;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 10px;
+    }
+
+    .city-row:last-child {
+      border-bottom: none;
+    }
+
+    .city-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .city-offset-line {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .city-name {
+      font-size: 1.22rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .city-vedic-sub {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 3px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .city-time-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: right;
+    }
+
+    .city-civil-digits {
+      font-size: 2rem;
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .delete-icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(255, 69, 58, 0.14);
+      color: var(--danger);
+      display: grid;
+      place-items: center;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .alarm-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 4px;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 12px;
+    }
+
+    .alarm-row:last-child {
+      border-bottom: none;
+    }
+
+    .alarm-primary-time {
+      font-size: 2.1rem;
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .alarm-disabled .alarm-primary-time,
+    .alarm-disabled .alarm-secondary-map {
+      opacity: 0.42;
+    }
+
+    .alarm-secondary-map {
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    .alarm-label-days {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .switch {
+      position: relative;
+      width: 52px;
+      height: 32px;
+      border-radius: 999px;
+      background: var(--border-strong);
+      transition: background var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .switch.on {
+      background: var(--success);
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: transform var(--transition-fast);
+    }
+
+    .switch.on::after {
+      transform: translateX(20px);
+    }
+
+    .day-selector {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .day-pill {
+      flex: 1;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .day-pill.selected {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .stopwatch-display {
+      text-align: center;
+      padding: 26px 8px 18px;
+    }
+
+    .sw-main-time {
+      font-family: var(--font-mono);
+      font-size: clamp(2.6rem, 11.5vw, 3.6rem);
+      font-weight: 300;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.05;
+    }
+
+    .sw-vedic-time {
+      margin-top: 8px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .control-circle-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin: 14px 0 8px;
+    }
+
+    .round-action-btn {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: 2px solid transparent;
+      transition: transform var(--transition-fast);
+    }
+
+    .round-action-btn:active {
+      transform: scale(0.94);
+    }
+
+    .round-btn-neutral {
+      background: var(--bg-elevated);
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .round-btn-start {
+      background: rgba(50, 215, 75, 0.18);
+      border-color: rgba(50, 215, 75, 0.45);
+      color: var(--success);
+    }
+
+    .round-btn-stop {
+      background: rgba(255, 69, 58, 0.18);
+      border-color: rgba(255, 69, 58, 0.45);
+      color: var(--danger);
+    }
+
+    .lap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .lap-table th,
+    .lap-table td {
+      padding: 10px 6px;
+      border-bottom: 1px solid var(--border-subtle);
+      text-align: left;
+    }
+
+    .lap-table th:last-child,
+    .lap-table td:last-child {
+      text-align: right;
+    }
+
+    .lap-fastest { color: var(--success); font-weight: 700; }
+    .lap-slowest { color: var(--danger); font-weight: 700; }
+
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .preset-chip {
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .preset-chip:active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .widget-preview-frame {
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(145deg, #1b1738 0%, #090814 100%);
+      border: 1px solid var(--border-strong);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .mock-widget {
+      border-radius: 22px;
+      padding: 16px;
+      color: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .mock-widget[data-w-style="oled"] {
+      background: #000000;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .mock-widget[data-w-style="glass"] {
+      background: linear-gradient(135deg, rgba(45, 38, 94, 0.78), rgba(20, 16, 48, 0.85));
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.26);
+    }
+
+    .honest-notice {
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: rgba(var(--accent-rgb), 0.1);
+      border: 1px solid rgba(var(--accent-rgb), 0.35);
+      font-size: 0.76rem;
+      color: var(--text-primary);
+      line-height: 1.45;
+    }
+
+    .bottom-nav-wrap {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: calc(var(--safe-bottom) + 8px);
+      z-index: 90;
+      display: flex;
+      justify-content: center;
+      padding: 0 12px;
+      pointer-events: none;
+    }
+
+    .bottom-nav {
+      pointer-events: auto;
+      width: 100%;
+      max-width: 456px;
+      background: var(--bg-nav);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      padding: 6px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55);
+    }
+
+    .nav-item {
+      min-height: 52px;
+      border-radius: 999px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-secondary);
+      font-size: 0.65rem;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .nav-item svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 700;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 480px;
+      max-height: 88dvh;
+      overflow-y: auto;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border-strong);
+      border-radius: 28px 28px 0 0;
+      padding: 20px 18px calc(var(--safe-bottom) + 24px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .color-swatch-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .color-swatch {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      display: grid;
+      place-items: center;
+    }
+
+    .color-swatch.active {
+      border-color: var(--text-primary);
+      transform: scale(1.1);
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 12px;
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- TOP HEADER -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="brand-mark" aria-hidden="true">घ</div>
+        <div>
+          <div class="brand-title">Klock</div>
+          <div class="brand-subtitle" id="headerModeLabel">Civil-Day • 60 Ghaṭī</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="icon-pill-btn" id="btnOpenWidgets" aria-label="Open Widget Preview Studio">
+          <span>Widgets</span>
+        </button>
+        <button type="button" class="icon-pill-btn" id="btnOpenSettings" aria-label="Open Settings">
+          <span>Settings ⚙</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- SCREEN 1: VEDIC CLOCK (HOME) -->
+    <main id="screen-vedic" class="screen active" aria-label="Vedic Clock">
+      <div class="segmented-row" role="group" aria-label="Quick Theme Switcher">
+        <button type="button" class="segment-btn active" data-quick-theme="oled">OLED Black</button>
+        <button type="button" class="segment-btn" data-quick-theme="glass">Indigo Glass</button>
+        <button type="button" class="segment-btn" id="btnQuickOutline">Outlined Digits</button>
+      </div>
+
+      <section class="card hero-clock-card">
+        <div class="hero-top-meta">
+          <span class="badge" id="anchorBadge">Civil Midnight Anchor</span>
+          <span class="badge" id="dateBadge">--</span>
+        </div>
+
+        <div class="ring-stage">
+          <svg class="progress-ring-svg" viewBox="0 0 260 260" aria-hidden="true">
+            <circle class="ring-track" cx="130" cy="130" r="116"></circle>
+            <circle class="ring-progress" id="heroRingProgress" cx="130" cy="130" r="116" stroke-dasharray="728.85" stroke-dashoffset="728.85"></circle>
+          </svg>
+
+          <div class="ring-inner-content">
+            <div class="vedic-Units-row" aria-live="off">
+              <div class="vedic-unit-block">
+                <span class="vedic-digits" id="liveGhati">00</span>
+                <span class="unit-label">Ghaṭī<span class="unit-deva">घटी</span></span>
+              </div>
+              <span class="vedic-colon">:</span>
+              <div class="vedic-unit-block">
+                <span class="vedic-digits" id="livePala">00</span>
+                <span class="unit-label">Pala<span class="unit-deva">पल</span></span>
+              </div>
+              <span class="vedic-colon" id="vipalaColon">:</span>
+              <div class="vedic-unit-block" id="vipalaBlock">
+                <span class="vedic-digits vipala-digits" id="liveVipala">00</span>
+                <span class="unit-label">Vipala<span class="unit-deva">विपल</span></span>
+              </div>
+            </div>
+
+            <div class="secondary-civil-clock" id="liveCivilTime">00:00:00</div>
+            <div class="muhurta-pill" id="liveMuhurta">Muhūrta 1 / 30</div>
+          </div>
+        </div>
+
+        <div class="linear-progress-wrap">
+          <div class="linear-bar-bg">
+            <div class="linear-bar-fill" id="linearDayBar"></div>
+          </div>
+        </div>
+
+        <div class="cycle-stats-grid">
+          <div class="stat-cell">
+            <span class="stat-label">Day Progress</span>
+            <span class="stat-value" id="statDayPct">0.00%</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">Elapsed Cycle</span>
+            <span class="stat-value" id="statElapsedGhati">0G 0P</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">Remaining</span>
+            <span class="stat-value" id="statRemainingGhati">59G 59P</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card card-compact">
+        <div class="section-header">
+          <h2 class="section-title">Vedic ⇄ Modern Unit Converter</h2>
+          <span class="badge">1 Ghaṭī = 24m</span>
+        </div>
+
+        <div class="converter-grid">
+          <div class="input-group">
+            <label class="input-label" for="convGhati">Ghaṭī (0–60)</label>
+            <input type="number" id="convGhati" class="field-input" min="0" max="600" step="1" value="1" />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="convPala">Pala (0–59)</label>
+            <input type="number" id="convPala" class="field-input" min="0" max="59" step="1" value="0" />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="convHours">Hours (SI)</label>
+            <input type="number" id="convHours" class="field-input" min="0" max="240" step="1" value="0" />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="convMinutes">Minutes (SI)</label>
+            <input type="number" id="convMinutes" class="field-input" min="0" max="59.99" step="0.4" value="24" />
+          </div>
+        </div>
+        <div id="convSummaryText" style="margin-top:10px; font-size:0.8rem; color:var(--accent); font-weight:600;">
+          1 Ghaṭī 0 Pala = 0.50 Muhūrta = 24 min 0 sec (1,440 sec)
+        </div>
+
+        <div class="reference-pills">
+          <div class="ref-pill"><span>1 Ahorātra (Day)</span><strong>60 Ghaṭī (24h)</strong></div>
+          <div class="ref-pill"><span>1 Muhūrta</span><strong>2 Ghaṭī (48m)</strong></div>
+          <div class="ref-pill"><span>1 Ghaṭī (Daṇḍa)</span><strong>60 Pala (24m)</strong></div>
+          <div class="ref-pill"><span>1 Pala (Vināḍī)</span><strong>60 Vipala (24s)</strong></div>
+          <div class="ref-pill"><span>1 Vipala (ili)</span><strong>0.4 Seconds</strong></div>
+          <div class="ref-pill"><span>30 Muhūrtas</span><strong>1,440 Minutes</strong></div>
+        </div>
+      </section>
+
+      <section class="card card-compact">
+        <div class="section-header">
+          <h2 class="section-title">Active Timekeeping Model</h2>
+          <button type="button" class="icon-pill-btn" id="btnSwitchAnchorInline" style="min-height:30px; font-size:0.72rem;">Switch Anchor</button>
+        </div>
+        <p id="modelExplanationText" style="font-size:0.79rem; color:var(--text-secondary);">
+          <strong>Civil-Day Mode:</strong> Maps the 24-hour SI day into 60 equal Ghaṭīs (24 min each) anchored at local midnight (00:00:00).
+        </p>
+        <p style="font-size:0.73rem; color:var(--text-muted); margin-top:6px;">
+          <em>Historical Note:</em> Classical texts (such as the <em>Sūrya Siddhānta</em> and regional <em>Pañcāṅga</em> traditions) also use synonyms like <em>Nāḍī</em> or <em>Daṇḍa</em> for Ghaṭī, and <em>Vināḍī</em> or <em>Vighaṭikā</em> for Pala, typically anchoring 0 Ghaṭī at local sunrise.
+        </p>
+      </section>
+    </main>
+
+    <!-- SCREEN 2: WORLD CLOCK -->
+    <section id="screen-world" class="screen" aria-label="World Clock">
+      <div class="card card-compact">
+        <div class="section-header" style="margin-bottom:0;">
+          <div>
+            <h2 class="section-title">World Clock & Zones</h2>
+            <p style="font-size:0.75rem; color:var(--text-secondary);">Real IANA offsets • Civil Midnight Vedic Anchor</p>
+          </div>
+          <button type="button" class="icon-pill-btn active" id="btnToggleWorldVedic">Ghaṭī: ON</button>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <select id="cityAddSelect" class="field-input" aria-label="Select a city to add">
+            <option value="">+ Add City Timezone...</option>
+            <option value="Bhopal|Asia/Kolkata">Bhopal, India (IST)</option>
+            <option value="Ujjain|Asia/Kolkata">Ujjain, India (IST)</option>
+            <option value="Varanasi|Asia/Kolkata">Varanasi, India (IST)</option>
+            <option value="Bengaluru|Asia/Kolkata">Bengaluru, India (IST)</option>
+            <option value="Kathmandu|Asia/Kathmandu">Kathmandu, Nepal (+05:45)</option>
+            <option value="Dubai|Asia/Dubai">Dubai, UAE (+04:00)</option>
+            <option value="Singapore|Asia/Singapore">Singapore (+08:00)</option>
+            <option value="Seoul|Asia/Seoul">Seoul, South Korea (+09:00)</option>
+            <option value="Sydney|Australia/Sydney">Sydney, Australia</option>
+            <option value="Paris|Europe/Paris">Paris, France</option>
+            <option value="Berlin|Europe/Berlin">Berlin, Germany</option>
+            <option value="San Francisco|America/Los_Angeles">San Francisco, USA</option>
+            <option value="Chicago|America/Chicago">Chicago, USA</option>
+            <option value="Toronto|America/Toronto">Toronto, Canada</option>
+            <option value="São Paulo|America/Sao_Paulo">São Paulo, Brazil</option>
+          </select>
+          <button type="button" class="btn-primary" id="btnAddCity" style="min-height:42px; padding:0 16px;">Add</button>
+        </div>
+      </div>
+
+      <div class="card card-compact">
+        <div class="world-list" id="worldClockList"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: ALARMS -->
+    <section id="screen-alarms" class="screen" aria-label="Alarms">
+      <div class="honest-notice">
+        <strong>Browser Platform Notice:</strong> Web alarms ring with synthesized chime & alert dialog while Klock is open in your browser. Browsers cannot reliably wake a sleeping phone when closed. Use the packaged Android APK for native <code>AlarmManager.setExactAndAllowWhileIdle()</code> wake alarms.
+      </div>
+
+      <div class="card card-compact">
+        <div class="section-header">
+          <h2 class="section-title" id="alarmFormTitle">New Alarm</h2>
+          <div class="segmented-row" style="width:200px;">
+            <button type="button" class="segment-btn active" data-alarm-mode="vedic">Ghaṭī:Pala</button>
+            <button type="button" class="segment-btn" data-alarm-mode="civil">Civil 24h</button>
+          </div>
+        </div>
+
+        <div id="alarmVedicInputs" class="converter-grid">
+          <div class="input-group">
+            <label class="input-label" for="alarmGhatiInput">Ghaṭī (0–59)</label>
+            <input type="number" id="alarmGhatiInput" class="field-input" min="0" max="59" value="15" />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="alarmPalaInput">Pala (0–59)</label>
+            <input type="number" id="alarmPalaInput" class="field-input" min="0" max="59" value="0" />
+          </div>
+        </div>
+
+        <div id="alarmCivilInputs" class="converter-grid" style="display:none;">
+          <div class="input-group">
+            <label class="input-label" for="alarmHourInput">Hour (0–23)</label>
+            <input type="number" id="alarmHourInput" class="field-input" min="0" max="23" value="6" />
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="alarmMinInput">Minute (0–59)</label>
+            <input type="number" id="alarmMinInput" class="field-input" min="0" max="59" value="0" />
+          </div>
+        </div>
+
+        <div id="alarmMappingPreview" style="margin-top:8px; font-size:0.79rem; color:var(--accent); font-weight:600;">
+          Maps to 06:00:00 local time (15 Ghaṭī 00 Pala • Civil Midnight Anchor)
+        </div>
+
+        <div class="input-group" style="margin-top:10px;">
+          <label class="input-label" for="alarmLabelInput">Alarm Label</label>
+          <input type="text" id="alarmLabelInput" class="field-input" placeholder="Brahma Muhūrta / Morning" maxlength="40" value="Prātaḥ Saṅkalpa" />
+        </div>
+
+        <div class="day-selector" id="alarmDaySelector" role="group" aria-label="Repeat Days">
+          <button type="button" class="day-pill selected" data-day="0">S</button>
+          <button type="button" class="day-pill selected" data-day="1">M</button>
+          <button type="button" class="day-pill selected" data-day="2">T</button>
+          <button type="button" class="day-pill selected" data-day="3">W</button>
+          <button type="button" class="day-pill selected" data-day="4">T</button>
+          <button type="button" class="day-pill selected" data-day="5">F</button>
+          <button type="button" class="day-pill selected" data-day="6">S</button>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button type="button" class="btn-primary" id="btnSaveAlarm" style="flex:1;">Save Alarm</button>
+          <button type="button" class="btn-secondary" id="btnTestChime">Test Sound</button>
+        </div>
+      </div>
+
+      <div class="card card-compact">
+        <div class="section-header">
+          <h2 class="section-title">Saved Alarms</h2>
+        </div>
+        <div id="alarmsListContainer"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: STOPWATCH -->
+    <section id="screen-stopwatch" class="screen" aria-label="Stopwatch">
+      <div class="card">
+        <div class="section-header">
+          <h2 class="section-title">Monotonic Stopwatch</h2>
+          <span class="badge">performance.now()</span>
+        </div>
+
+        <div class="stopwatch-display">
+          <div class="sw-main-time" id="swCivilDisplay">00:00.00</div>
+          <div class="sw-vedic-time" id="swVedicDisplay">00 Ghaṭī : 00 Pala : 00.0 Vipala</div>
+        </div>
+
+        <div class="control-circle-row">
+          <button type="button" class="round-action-btn round-btn-neutral" id="btnSwLapReset">Lap</button>
+          <button type="button" class="round-action-btn round-btn-start" id="btnSwStartStop">Start</button>
+        </div>
+      </div>
+
+      <div class="card card-compact">
+        <div class="section-header">
+          <h2 class="section-title">Lap Records</h2>
+          <span id="swLapCountBadge" class="badge">0 Laps</span>
+        </div>
+        <div style="max-height:240px; overflow-y:auto;">
+          <table class="lap-table">
+            <thead>
+              <tr>
+                <th>Lap</th>
+                <th>Split (SI)</th>
+                <th>Split (Vedic)</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="swLapsBody">
+              <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No laps recorded yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 5: TIMERS -->
+    <section id="screen-timers" class="screen" aria-label="Timers">
+      <div class="honest-notice">
+        <strong>Background Timer Notice:</strong> Timers use a monotonic deadline timestamp so elapsed time stays exact even if your screen briefly dims, but mobile browsers may suspend audio callbacks if backgrounded. Native Android requires a Foreground Service / <code>AlarmManager</code>.
+      </div>
+
+      <div class="card">
+        <div class="section-header">
+          <h2 class="section-title">Vedic & SI Countdown Timer</h2>
+          <span class="badge" id="timerStatusBadge">Ready</span>
+        </div>
+
+        <div class="stopwatch-display" style="padding:14px 4px;">
+          <div class="sw-main-time" id="timerCivilRemain">00:24:00.0</div>
+          <div class="sw-vedic-time" id="timerVedicRemain">01 Ghaṭī : 00 Pala : 00 Vipala</div>
+          <div class="linear-progress-wrap" style="margin-top:12px;">
+            <div class="linear-bar-bg">
+              <div class="linear-bar-fill" id="timerProgressBar" style="width:100%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="timerEditPanel">
+          <div class="section-title" style="margin-bottom:6px;">Set by Vedic Units</div>
+          <div class="converter-grid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="input-group">
+              <label class="input-label" for="tmGhati">Ghaṭī (24m)</label>
+              <input type="number" id="tmGhati" class="field-input" min="0" max="60" value="1" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="tmPala">Pala (24s)</label>
+              <input type="number" id="tmPala" class="field-input" min="0" max="59" value="0" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="tmVipala">Vipala (0.4s)</label>
+              <input type="number" id="tmVipala" class="field-input" min="0" max="59" value="0" />
+            </div>
+          </div>
+
+          <div class="section-title" style="margin-top:12px; margin-bottom:6px;">Or Set by Modern SI Units</div>
+          <div class="converter-grid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="input-group">
+              <label class="input-label" for="tmHours">Hours</label>
+              <input type="number" id="tmHours" class="field-input" min="0" max="24" value="0" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="tmMinutes">Minutes</label>
+              <input type="number" id="tmMinutes" class="field-input" min="0" max="59" value="24" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="tmSeconds">Seconds</label>
+              <input type="number" id="tmSeconds" class="field-input" min="0" max="59" value="0" />
+            </div>
+          </div>
+
+          <div class="preset-chips">
+            <button type="button" class="preset-chip" data-preset-ms="24000">1 Pala (24s)</button>
+            <button type="button" class="preset-chip" data-preset-ms="120000">5 Pala (2m)</button>
+            <button type="button" class="preset-chip" data-preset-ms="360000">15 Pala (6m)</button>
+            <button type="button" class="preset-chip" data-preset-ms="1440000">1 Ghaṭī (24m)</button>
+            <button type="button" class="preset-chip" data-preset-ms="2880000">1 Muhūrta (48m)</button>
+          </div>
+        </div>
+
+        <div class="control-circle-row" style="margin-top:16px;">
+          <button type="button" class="round-action-btn round-btn-neutral" id="btnTimerReset">Reset</button>
+          <button type="button" class="round-action-btn round-btn-start" id="btnTimerStartPause">Start</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 6: WIDGET CUSTOMIZATION STUDIO (IN-APP PREVIEW) -->
+    <section id="screen-widgets" class="screen" aria-label="Widget Customization Studio">
+      <div class="honest-notice">
+        <strong>Important Architecture Distinction:</strong> The interactive cards below are <strong>in-app design previews</strong>. A browser HTML file cannot install home-screen widgets by itself. When packaged with the native Android Kotlin <code>AppWidgetProvider</code> files, your saved preferences sync automatically to real Android home-screen widgets via <code>SharedPreferences</code>.
+      </div>
+
+      <div class="card card-compact">
+        <div class="section-header">
+          <h2 class="section-title">Widget Appearance & Sync</h2>
+          <button type="button" class="icon-pill-btn" id="btnBackToClockFromWidgets">← Back to Clock</button>
+        </div>
+
+        <div class="setting-row">
+          <span class="input-label">Widget Surface Theme</span>
+          <div class="segmented-row" style="width:190px;">
+            <button type="button" class="segment-btn active" data-w-theme="oled">OLED</button>
+            <button type="button" class="segment-btn" data-w-theme="glass">Glass</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <span class="input-label">Show Vipala on Large Widget</span>
+          <button type="button" class="switch on" id="wToggleVipala" aria-label="Toggle Vipala on Widget"></button>
+        </div>
+
+        <div class="setting-row">
+          <span class="input-label">Devanagari Script Labels</span>
+          <button type="button" class="switch" id="wToggleDeva" aria-label="Toggle Devanagari on Widget"></button>
+        </div>
+      </div>
+
+      <div class="widget-preview-frame">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="section-title" style="color:#B8BCE0;">1. Compact Widget (2×1 Launcher Grid)</div>
+          <button type="button" class="icon-pill-btn" data-pin-widget="compact" style="min-height:28px; font-size:0.7rem;">+ Pin to Home</button>
+        </div>
+        <div class="mock-widget" id="mockWidgetCompact" data-w-style="oled" style="max-width:210px;">
+          <div style="font-size:0.65rem; color:var(--accent); font-weight:700; text-transform:uppercase;">Klock • Vedic</div>
+          <div style="font-size:1.85rem; font-weight:800; letter-spacing:-0.03em; font-variant-numeric:tabular-nums;" id="wCompactDigits">00 : 00</div>
+          <div style="font-size:0.7rem; color:#9898A2;" id="wCompactUnitSub">Ghaṭī : Pala</div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+          <div class="section-title" style="color:#B8BCE0;">2. Medium Widget (4×2 Launcher Grid)</div>
+          <button type="button" class="icon-pill-btn" data-pin-widget="medium" style="min-height:28px; font-size:0.7rem;">+ Pin to Home</button>
+        </div>
+        <div class="mock-widget" id="mockWidgetMedium" data-w-style="oled">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.68rem; color:var(--accent); font-weight:700; text-transform:uppercase;" id="wMedAnchor">Civil Anchor</div>
+              <div style="font-size:2.2rem; font-weight:800; line-height:1.05; font-variant-numeric:tabular-nums;" id="wMedVedic">00 : 00</div>
+              <div style="font-size:0.72rem; color:#9898A2;" id="wMedLabels">Ghaṭī • Pala</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:1.25rem; font-weight:600; font-variant-numeric:tabular-nums;" id="wMedCivil">00:00</div>
+              <div style="font-size:0.72rem; color:var(--accent); font-weight:600;" id="wMedMuhurta">Muhūrta 1/30</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+          <div class="section-title" style="color:#B8BCE0;">3. Large Widget (4×3 Launcher Grid)</div>
+          <button type="button" class="icon-pill-btn" data-pin-widget="large" style="min-height:28px; font-size:0.7rem;">+ Pin to Home</button>
+        </div>
+        <div class="mock-widget" id="mockWidgetLarge" data-w-style="oled">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:0.72rem; font-weight:700; color:var(--accent);">AHORĀTRA CYCLE</span>
+            <span style="font-size:0.72rem; color:#9898A2;" id="wLargeDate">--</span>
+          </div>
+          <div style="font-size:2.45rem; font-weight:800; letter-spacing:-0.03em; font-variant-numeric:tabular-nums;" id="wLargeVedic">00 : 00 : 00</div>
+          <div style="font-size:0.82rem; color:#B8BCE0; margin-top:2px;" id="wLargeCivil">Civil Time: 00:00:00</div>
+          <div class="linear-bar-bg" style="margin:10px 0 8px; background:rgba(255,255,255,0.15);">
+            <div class="linear-bar-fill" id="wLargeBar"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#9898A2;">
+            <span>1 Ghaṭī = 24m</span>
+            <span>1 Pala = 24s</span>
+            <span id="wLargePct">0.0% Elapsed</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FLOATING BOTTOM NAVIGATION BAR -->
+  <div class="bottom-nav-wrap">
+    <nav class="bottom-nav" aria-label="Primary Navigation">
+      <button type="button" class="nav-item active" data-target="screen-vedic">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+        <span>Vedic Clock</span>
+      </button>
+      <button type="button" class="nav-item" data-target="screen-world">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a15.3 15.3 0 0 1 4 9 15.3 15.3 0 0 1-4 9 15.3 15.3 0 0 1-4-9 15.3 15.3 0 0 1 4-9z"/></svg>
+        <span>World Clock</span>
+      </button>
+      <button type="button" class="nav-item" data-target="screen-alarms">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 14.5"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/></svg>
+        <span>Alarms</span>
+      </button>
+      <button type="button" class="nav-item" data-target="screen-stopwatch">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="10" y1="2" x2="14" y2="2"/></svg>
+        <span>Stopwatch</span>
+      </button>
+      <button type="button" class="nav-item" data-target="screen-timers">
+        <svg viewBox="0 0 24 24"><path d="M10 2h4"/><path d="M12 14v-4"/><circle cx="12" cy="14" r="8"/></svg>
+        <span>Timers</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- SETTINGS MODAL SHEET -->
+  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-label="Application Settings">
+    <div class="modal-sheet">
+      <div class="section-header" style="margin-bottom:0;">
+        <h2 style="font-size:1.15rem; font-weight:800;">Appearance & Time Engine Settings</h2>
+        <button type="button" class="icon-pill-btn" id="btnCloseSettings">Done</button>
+      </div>
+
+      <div class="setting-row">
+        <span class="input-label">Interface Theme</span>
+        <div class="segmented-row" style="width:200px;">
+          <button type="button" class="segment-btn active" data-set-theme="oled">OLED</button>
+          <button type="button" class="segment-btn" data-set-theme="glass">Glass</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <span class="input-label">Brightness Mode</span>
+        <div class="segmented-row" style="width:200px;">
+          <button type="button" class="segment-btn active" data-set-mode="dark">Dark</button>
+          <button type="button" class="segment-btn" data-set-mode="light">Light</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <span class="input-label">Accent Color</span>
+        <div class="color-swatch-row" id="accentSwatchGroup">
+          <button type="button" class="color-swatch active" data-accent="#FF9500" data-rgb="255, 149, 0" style="background:#FF9500;" aria-label="Saffron Orange"></button>
+          <button type="button" class="color-swatch" data-accent="#FF5E5B" data-rgb="255, 94, 91" style="background:#FF5E5B;" aria-label="Coral Red"></button>
+          <button type="button" class="color-swatch" data-accent="#F5B700" data-rgb="245, 183, 0" style="background:#F5B700;" aria-label="Surya Gold"></button>
+          <button type="button" class="color-swatch" data-accent="#10B981" data-rgb="16, 185, 129" style="background:#10B981;" aria-label="Prana Emerald"></button>
+          <button type="button" class="color-swatch" data-accent="#818CF8" data-rgb="129, 140, 248" style="background:#818CF8;" aria-label="Indigo Lotus"></button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <span class="input-label">Font Size Scale</span>
+        <select id="selectFontScale" class="field-input" style="width:150px;">
+          <option value="small">Compact (90%)</option>
+          <option value="default" selected>Default (100%)</option>
+          <option value="large">Large (110%)</option>
+          <option value="xlarge">Extra Large (118%)</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <span class="input-label">Numeral Script</span>
+        <div class="segmented-row" style="width:200px;">
+          <button type="button" class="segment-btn active" data-set-numerals="arabic">0–9</button>
+          <button type="button" class="segment-btn" data-set-numerals="deva">०–९ (Deva)</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <span class="input-label">Show Devanagari Unit Labels (घटी/पल)</span>
+        <button type="button" class="switch" id="toggleDevaLabels"></button>
+      </div>
+
+      <div class="setting-row">
+        <span class="input-label">Show Sub-Second Vipala (0.4s)</span>
+        <button type="button" class="switch on" id="toggleShowVipala"></button>
+      </div>
+
+      <div style="padding-top:6px;">
+        <div class="section-title" style="margin-bottom:8px;">Day-Anchor Calculation Mode</div>
+        <div class="segmented-row">
+          <button type="button" class="segment-btn active" data-set-anchor="civil">1. Civil Midnight</button>
+          <button type="button" class="segment-btn" data-set-anchor="sunrise">2. Local Sunrise</button>
+        </div>
+
+        <div id="sunriseConfigBox" style="display:none; margin-top:12px; padding:12px; border-radius:14px; background:var(--bg-elevated); border:1px solid var(--border-subtle);">
+          <div style="font-size:0.76rem; color:var(--text-secondary); margin-bottom:8px;">
+            <strong>Sunrise Anchor (Sāvana 60-Ghaṭī Cycle):</strong> Anchors <code>00 Ghaṭī 00 Pala</code> to local sunrise using NOAA solar position equations, or a manual sunrise time override. Each Ghaṭī equals 24 SI minutes.
+          </div>
+          <div class="converter-grid">
+            <div class="input-group">
+              <label class="input-label" for="inputLat">Latitude (°N)</label>
+              <input type="number" id="inputLat" class="field-input" step="0.01" value="23.2599" />
+            </div>
+            <div class="input-group">
+              <label class="input-label" for="inputLon">Longitude (°E)</label>
+              <input type="number" id="inputLon" class="field-input" step="0.01" value="77.4126" />
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px; align-items:center;">
+            <button type="button" class="icon-pill-btn" id="btnUseGeo">Use Device GPS</button>
+            <span id="calcSunriseReadout" style="font-size:0.78rem; color:var(--accent); font-weight:700;">Calc Sunrise: 06:18</span>
+          </div>
+          <div class="input-group" style="margin-top:8px;">
+            <label class="input-label" for="manualSunriseInput">Optional Manual Sunrise Override (HH:MM)</label>
+            <input type="time" id="manualSunriseInput" class="field-input" />
+          </div>
+        </div>
+      </div>
+
+      <div style="padding-top:8px; border-top:1px solid var(--border-subtle);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="section-title">Engine Acceptance Verification</span>
+          <button type="button" class="icon-pill-btn active" id="btnRunAcceptanceTests">Run 15 Tests</button>
+        </div>
+        <div id="acceptanceTestOutput" style="margin-top:8px; font-size:0.75rem; font-family:var(--font-mono); color:var(--text-secondary);"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVE ALARM / TIMER ALERT MODAL -->
+  <div class="modal-backdrop" id="ringingModal" role="alertdialog" aria-modal="true" aria-label="Alert Ringing">
+    <div class="modal-sheet" style="align-items:center; text-align:center;">
+      <div class="badge" id="ringingBadge">VEDIC ALARM</div>
+      <h2 id="ringingTitle" style="font-size:1.6rem; font-weight:800; margin-top:4px;">Prātaḥ Saṅkalpa</h2>
+      <div id="ringingSubtitle" style="font-size:1.1rem; color:var(--accent); font-weight:700;">15 Ghaṭī : 00 Pala</div>
+      <button type="button" class="btn-primary" id="btnDismissRinging" style="width:100%; margin-top:12px;">Dismiss Alert</button>
+    </div>
+  </div>
+
+  <script>
+    const KLOCK_CONSTANTS = Object.freeze({
+      MS_PER_VIPALA: 400,
+      MS_PER_PALA: 24000,
+      MS_PER_GHATI: 1440000,
+      MS_PER_MUHURTA: 2880000,
+      MS_PER_DAY: 86400000,
+      STORAGE_KEY: 'klock_vedic_state_v1',
+      RING_CIRCUMFERENCE: 2 * Math.PI * 116
+    });
+
+    const DEFAULT_STATE = {
+      theme: 'oled',
+      mode: 'dark',
+      numeralStyle: 'solid',
+      numeralScript: 'arabic',
+      fontScale: 'default',
+      accent: '#FF9500',
+      accentRgb: '255, 149, 0',
+      showVipala: true,
+      showDevaLabels: false,
+      anchorMode: 'civil',
+      latitude: 23.2599,
+      longitude: 77.4126,
+      manualSunrise: '',
+      worldShowVedic: true,
+      cities: [
+        { name: 'Mumbai', tz: 'Asia/Kolkata' },
+        { name: 'New York', tz: 'America/New_York' },
+        { name: 'London', tz: 'Europe/London' },
+        { name: 'Tokyo', tz: 'Asia/Tokyo' }
+      ],
+      alarms: [
+        {
+          id: 'alm-default-1',
+          ghati: 15,
+          pala: 0,
+          label: 'Prātaḥ Saṅkalpa (Morning)',
+          days: [0, 1, 2, 3, 4, 5, 6],
+          enabled: true
+        }
+      ],
+      widgetPrefs: {
+        style: 'oled',
+        showVipala: true,
+        showDeva: false
+      }
+    };
+
+    const VedicTimeEngine = {
+      fromElapsedMs(rawElapsedMs) {
+        const dayMs = KLOCK_CONSTANTS.MS_PER_DAY;
+        const intRaw = Math.floor(Number(rawElapsedMs) || 0);
+        const elapsed = ((intRaw % dayMs) + dayMs) % dayMs;
+
+        const ghati = Math.floor(elapsed / KLOCK_CONSTANTS.MS_PER_GHATI);
+        const remAfterGhati = elapsed % KLOCK_CONSTANTS.MS_PER_GHATI;
+        const pala = Math.floor(remAfterGhati / KLOCK_CONSTANTS.MS_PER_PALA);
+        const remAfterPala = remAfterGhati % KLOCK_CONSTANTS.MS_PER_PALA;
+        const vipala = Math.floor(remAfterPala / KLOCK_CONSTANTS.MS_PER_VIPALA);
+        const muhurta = Math.floor(elapsed / KLOCK_CONSTANTS.MS_PER_MUHURTA) + 1;
+        const progressRatio = elapsed / dayMs;
+
+        const remainingMs = dayMs - elapsed;
+        const remGhati = Math.floor(remainingMs / KLOCK_CONSTANTS.MS_PER_GHATI);
+        const remPala = Math.floor((remainingMs % KLOCK_CONSTANTS.MS_PER_GHATI) / KLOCK_CONSTANTS.MS_PER_PALA);
+
+        return {
+          elapsedMs: elapsed,
+          ghati,
+          pala,
+          vipala,
+          muhurta,
+          progressRatio,
+          progressPercent: progressRatio * 100,
+          remGhati: remGhati === 60 ? 59 : remGhati,
+          remPala
+        };
+      },
+
+      getCivilElapsedMs(dateObj = new Date()) {
+        return (
+          dateObj.getHours() * 3600000 +
+          dateObj.getMinutes() * 60000 +
+          dateObj.getSeconds() * 1000 +
+          dateObj.getMilliseconds()
+        );
+      },
+
+      calculateAstronomicalSunrise(dateObj, lat, lon) {
+        const rad = Math.PI / 180;
+        const deg = 180 / Math.PI;
+        const startOfYear = new Date(dateObj.getFullYear(), 0, 0);
+        const diff = dateObj - startOfYear;
+        const dayOfYear = Math.floor(diff / 86400000);
+        const gamma = ((2 * Math.PI) / 365) * (dayOfYear - 1);
+
+        const eqTime = 229.18 * (
+          0.000075 +
+          0.001868 * Math.cos(gamma) -
+          0.032077 * Math.sin(gamma) -
+          0.014615 * Math.cos(2 * gamma) -
+          0.040849 * Math.sin(2 * gamma)
+        );
+
+        const decl =
+          0.006918 -
+          0.399912 * Math.cos(gamma) +
+          0.070257 * Math.sin(gamma) -
+          0.006758 * Math.cos(2 * gamma) +
+          0.000907 * Math.sin(2 * gamma) -
+          0.002697 * Math.cos(3 * gamma) +
+          0.00148 * Math.sin(3 * gamma);
+
+        const cosHA =
+          (Math.cos(90.8333 * rad) / (Math.cos(lat * rad) * Math.cos(decl))) -
+          Math.tan(lat * rad) * Math.tan(decl);
+
+        if (cosHA > 1 || cosHA < -1) {
+          return { hours: 6, minutes: 0, totalMsFromMidnight: 6 * 3600000, valid: false };
+        }
+
+        const hourAngleDeg = Math.acos(cosHA) * deg;
+        const utcMinutes = 720 - 4 * (lon + hourAngleDeg) - eqTime;
+        const tzOffsetMinutes = -dateObj.getTimezoneOffset();
+        const localMinutes = ((utcMinutes + tzOffsetMinutes) % 1440 + 1440) % 1440;
+
+        const hours = Math.floor(localMinutes / 60);
+        const minutes = Math.round(localMinutes % 60);
+        const normalizedHours = minutes === 60 ? (hours + 1) % 24 : hours;
+        const normalizedMinutes = minutes === 60 ? 0 : minutes;
+
+        return {
+          hours: normalizedHours,
+          minutes: normalizedMinutes,
+          totalMsFromMidnight: (normalizedHours * 3600 + normalizedMinutes * 60) * 1000,
+          valid: true
+        };
+      },
+
+      getSunriseAnchorMs(dateObj, state) {
+        if (state.manualSunrise && /^\d{2}:\d{2}$/.test(state.manualSunrise)) {
+          const [hh, mm] = state.manualSunrise.split(':').map(Number);
+          return (hh * 3600 + mm * 60) * 1000;
+        }
+        const calc = this.calculateAstronomicalSunrise(dateObj, state.latitude, state.longitude);
+        return calc.totalMsFromMidnight;
+      },
+
+      computeCurrentVedic(dateObj, state) {
+        const civilElapsedMs = this.getCivilElapsedMs(dateObj);
+        let anchorOffsetMs = 0;
+        if (state.anchorMode === 'sunrise') {
+          anchorOffsetMs = this.getSunriseAnchorMs(dateObj, state);
+        }
+        const anchoredElapsedMs = civilElapsedMs - anchorOffsetMs;
+        return {
+          ...this.fromElapsedMs(anchoredElapsedMs),
+          anchorOffsetMs,
+          civilElapsedMs
+        };
+      },
+
+      vedicToMs(ghati = 0, pala = 0, vipala = 0) {
+        return (
+          Math.max(0, Number(ghati) || 0) * KLOCK_CONSTANTS.MS_PER_GHATI +
+          Math.max(0, Number(pala) || 0) * KLOCK_CONSTANTS.MS_PER_PALA +
+          Math.max(0, Number(vipala) || 0) * KLOCK_CONSTANTS.MS_PER_VIPALA
+        );
+      },
+
+      vedicAlarmToCivilTime(ghati, pala, state, refDate = new Date()) {
+        const anchorMs = state.anchorMode === 'sunrise' ? this.getSunriseAnchorMs(refDate, state) : 0;
+        const targetOffsetMs = this.vedicToMs(ghati, pala, 0);
+        const civilMs = (anchorMs + targetOffsetMs) % KLOCK_CONSTANTS.MS_PER_DAY;
+        const hours = Math.floor(civilMs / 3600000);
+        const minutes = Math.floor((civilMs % 3600000) / 60000);
+        const seconds = Math.floor((civilMs % 60000) / 1000);
+        return { hours, minutes, seconds, civilMs };
+      }
+    };
+
+    const StorageManager = {
+      load() {
+        try {
+          const raw = localStorage.getItem(KLOCK_CONSTANTS.STORAGE_KEY);
+          if (!raw) return structuredClone(DEFAULT_STATE);
+          const parsed = JSON.parse(raw);
+          return {
+            ...structuredClone(DEFAULT_STATE),
+            ...parsed,
+            widgetPrefs: {
+              ...DEFAULT_STATE.widgetPrefs,
+              ...(parsed.widgetPrefs || {})
+            },
+            cities: Array.isArray(parsed.cities) && parsed.cities.length
+              ? parsed.cities
+              : structuredClone(DEFAULT_STATE.cities),
+            alarms: Array.isArray(parsed.alarms)
+              ? parsed.alarms
+              : structuredClone(DEFAULT_STATE.alarms)
+          };
+        } catch (err) {
+          console.warn('Klock storage recovery triggered:', err);
+          return structuredClone(DEFAULT_STATE);
+        }
+      },
+
+      save(state) {
+        try {
+          const serialized = JSON.stringify(state);
+          localStorage.setItem(KLOCK_CONSTANTS.STORAGE_KEY, serialized);
+          if (window.AndroidWidgetBridge && typeof window.AndroidWidgetBridge.syncConfiguration === 'function') {
+            window.AndroidWidgetBridge.syncConfiguration(serialized);
+          }
+        } catch (err) {
+          console.warn('Unable to persist state to localStorage:', err);
+        }
+      }
+    };
+
+    let appState = StorageManager.load();
+
+    const DEVA_DIGITS = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+
+    function formatDigits(value, padLength = 2) {
+      const str = String(Math.max(0, Math.floor(value))).padStart(padLength, '0');
+      if (appState.numeralScript === 'deva') {
+        return str.replace(/\d/g, d => DEVA_DIGITS[Number(d)]);
+      }
+      return str;
+    }
+
+    function formatNumberString(str) {
+      if (appState.numeralScript === 'deva') {
+        return String(str).replace(/\d/g, d => DEVA_DIGITS[Number(d)]);
+      }
+      return String(str);
+    }
+
+    const SoundEngine = {
+      ctx: null,
+      playBell() {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          if (!this.ctx) this.ctx = new AudioCtx();
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+
+          const now = this.ctx.currentTime;
+          const freqs = [528, 792, 1056];
+          freqs.forEach((f, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = idx === 0 ? 'sine' : 'triangle';
+            osc.frequency.setValueAtTime(f, now);
+
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.exponentialRampToValueAtTime(0.22 / (idx + 1), now + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 1.45);
+          });
+        } catch (e) {
+          console.warn('Audio playback blocked or unsupported:', e);
+        }
+      }
+    };
+
+    const domCache = {};
+    function el(id) {
+      if (!domCache[id]) domCache[id] = document.getElementById(id);
+      return domCache[id];
+    }
+
+    let lastRenderedText = {};
+    function setTextIfChanged(id, text) {
+      if (lastRenderedText[id] !== text) {
+        const node = el(id);
+        if (node) node.textContent = text;
+        lastRenderedText[id] = text;
+      }
+    }
+
+    function applyVisualPreferences() {
+      const root = document.documentElement;
+      root.setAttribute('data-theme', appState.theme);
+      root.setAttribute('data-mode', appState.mode);
+      root.setAttribute('data-numeral-style', appState.numeralStyle);
+      root.setAttribute('data-font-scale', appState.fontScale);
+      root.setAttribute('data-show-deva', String(appState.showDevaLabels));
+      root.style.setProperty('--accent', appState.accent);
+      root.style.setProperty('--accent-rgb', appState.accentRgb);
+      root.style.setProperty('--accent-soft', `rgba(${appState.accentRgb}, 0.16)`);
+
+      const vipalaDisp = appState.showVipala ? '' : 'none';
+      el('vipalaColon').style.display = vipalaDisp;
+      el('vipalaBlock').style.display = vipalaDisp;
+
+      document.querySelectorAll('[data-quick-theme]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.quickTheme === appState.theme);
+      });
+      el('btnQuickOutline').classList.toggle('active', appState.numeralStyle === 'outlined');
+
+      document.querySelectorAll('[data-set-theme]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.setTheme === appState.theme);
+      });
+      document.querySelectorAll('[data-set-mode]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.setMode === appState.mode);
+      });
+      document.querySelectorAll('[data-set-numerals]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.setNumerals === appState.numeralScript);
+      });
+      document.querySelectorAll('[data-set-anchor]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.setAnchor === appState.anchorMode);
+      });
+      document.querySelectorAll('#accentSwatchGroup .color-swatch').forEach(sw => {
+        sw.classList.toggle('active', sw.dataset.accent === appState.accent);
+      });
+
+      el('selectFontScale').value = appState.fontScale;
+      el('toggleDevaLabels').classList.toggle('on', appState.showDevaLabels);
+      el('toggleShowVipala').classList.toggle('on', appState.showVipala);
+      el('sunriseConfigBox').style.display = appState.anchorMode === 'sunrise' ? 'block' : 'none';
+
+      const sr = VedicTimeEngine.calculateAstronomicalSunrise(new Date(), appState.latitude, appState.longitude);
+      const srStr = `${String(sr.hours).padStart(2, '0')}:${String(sr.minutes).padStart(2, '0')}`;
+      setTextIfChanged('calcSunriseReadout', `Calc Sunrise: ${srStr}`);
+
+      const isSunrise = appState.anchorMode === 'sunrise';
+      const activeSunriseStr = appState.manualSunrise || srStr;
+      setTextIfChanged('headerModeLabel', isSunrise ? `Sunrise (${activeSunriseStr}) • 60 Ghaṭī` : 'Civil-Day • 60 Ghaṭī');
+      setTextIfChanged('anchorBadge', isSunrise ? `Sunrise Anchor (${activeSunriseStr})` : 'Civil Midnight Anchor');
+
+      el('modelExplanationText').innerHTML = isSunrise
+        ? `<strong>Sunrise-Anchored Mode:</strong> Anchors <code>00 Ghaṭī 00 Pala</code> to local sunrise (${activeSunriseStr}). Each Ghaṭī spans a fixed 24 SI minutes (1,440,000 ms), completing 60 Ghaṭīs across 24 hours.`
+        : `<strong>Civil-Day Mode:</strong> Maps the 24-hour SI day into 60 equal Ghaṭīs (24 min each) anchored at local midnight (00:00:00).`;
+
+      document.querySelectorAll('[data-w-theme]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.wTheme === appState.widgetPrefs.style);
+      });
+      ['mockWidgetCompact', 'mockWidgetMedium', 'mockWidgetLarge'].forEach(wId => {
+        el(wId).setAttribute('data-w-style', appState.widgetPrefs.style);
+      });
+      el('wToggleVipala').classList.toggle('on', appState.widgetPrefs.showVipala);
+      el('wToggleDeva').classList.toggle('on', appState.widgetPrefs.showDeva);
+    }
+
+    function renderMainClockAndWidgets(now) {
+      const snap = VedicTimeEngine.computeCurrentVedic(now, appState);
+
+      setTextIfChanged('liveGhati', formatDigits(snap.ghati, 2));
+      setTextIfChanged('livePala', formatDigits(snap.pala, 2));
+      setTextIfChanged('liveVipala', formatDigits(snap.vipala, 2));
+
+      const civilStr = formatNumberString(
+        `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+      );
+      setTextIfChanged('liveCivilTime', `Local Civil Time • ${civilStr}`);
+
+      const muhurtaText = appState.showDevaLabels
+        ? `Muhūrta (मुहूर्त) ${formatDigits(snap.muhurta, 1)} / ${formatDigits(30, 1)}`
+        : `Muhūrta ${formatDigits(snap.muhurta, 1)} / ${formatDigits(30, 1)}`;
+      setTextIfChanged('liveMuhurta', muhurtaText);
+
+      const dateText = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      setTextIfChanged('dateBadge', dateText);
+
+      const dashOffset = KLOCK_CONSTANTS.RING_CIRCUMFERENCE * (1 - snap.progressRatio);
+      el('heroRingProgress').style.strokeDashoffset = dashOffset.toFixed(2);
+      el('linearDayBar').style.width = `${snap.progressPercent.toFixed(2)}%`;
+
+      setTextIfChanged('statDayPct', formatNumberString(`${snap.progressPercent.toFixed(2)}%`));
+      setTextIfChanged('statElapsedGhati', formatNumberString(`${snap.ghati}G ${snap.pala}P`));
+      setTextIfChanged('statRemainingGhati', formatNumberString(`${snap.remGhati}G ${snap.remPala}P`));
+
+      if (el('screen-widgets').classList.contains('active')) {
+        const wDeva = appState.widgetPrefs.showDeva;
+        const gStr = formatDigits(snap.ghati, 2);
+        const pStr = formatDigits(snap.pala, 2);
+        const vStr = formatDigits(snap.vipala, 2);
+
+        setTextIfChanged('wCompactDigits', `${gStr} : ${pStr}`);
+        setTextIfChanged('wCompactUnitSub', wDeva ? 'Ghaṭī (घटी) : Pala (पल)' : 'Ghaṭī : Pala');
+
+        setTextIfChanged('wMedAnchor', appState.anchorMode === 'sunrise' ? 'Sunrise Anchor' : 'Civil Anchor');
+        setTextIfChanged('wMedVedic', `${gStr} : ${pStr}`);
+        setTextIfChanged('wMedLabels', wDeva ? 'घटी • पल' : 'Ghaṭī • Pala');
+        setTextIfChanged('wMedCivil', civilStr.slice(0, 5));
+        setTextIfChanged('wMedMuhurta', `Muhūrta ${snap.muhurta}/30`);
+
+        setTextIfChanged('wLargeDate', dateText);
+        setTextIfChanged('wLargeVedic', appState.widgetPrefs.showVipala ? `${gStr} : ${pStr} : ${vStr}` : `${gStr} : ${pStr}`);
+        setTextIfChanged('wLargeCivil', `Civil Time: ${civilStr}`);
+        el('wLargeBar').style.width = `${snap.progressPercent.toFixed(1)}%`;
+        setTextIfChanged('wLargePct', `${snap.progressPercent.toFixed(1)}% Elapsed`);
+      }
+    }
+
+    function getZoneWallTime(dateObj, timeZone) {
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23',
+        timeZoneName: 'shortOffset'
+      });
+
+      const parts = formatter.formatToParts(dateObj);
+      const map = {};
+      parts.forEach(p => { map[p.type] = p.value; });
+
+      const year = Number(map.year);
+      const month = Number(map.month);
+      const day = Number(map.day);
+      const hour = Number(map.hour === '24' ? 0 : map.hour);
+      const minute = Number(map.minute);
+      const second = Number(map.second);
+      const tzOffsetLabel = map.timeZoneName || 'UTC';
+
+      const elapsedMs = (hour * 3600 + minute * 60 + second) * 1000 + dateObj.getMilliseconds();
+      const vedic = VedicTimeEngine.fromElapsedMs(elapsedMs);
+
+      const localYMD = Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+      const targetYMD = Date.UTC(year, month - 1, day);
+      const dayDiff = Math.round((targetYMD - localYMD) / 86400000);
+      let dayLabel = 'Today';
+      if (dayDiff === 1) dayLabel = 'Tomorrow';
+      else if (dayDiff === -1) dayLabel = 'Yesterday';
+      else if (dayDiff > 1) dayLabel = `+${dayDiff} Days`;
+      else if (dayDiff < -1) dayLabel = `${dayDiff} Days`;
+
+      return { hour, minute, second, dayLabel, tzOffsetLabel, vedic };
+    }
+
+    function renderWorldClockList(now = new Date()) {
+      const container = el('worldClockList');
+      if (!container) return;
+
+      container.innerHTML = appState.cities.map((city, idx) => {
+        const info = getZoneWallTime(now, city.tz);
+        const civilHm = formatNumberString(`${String(info.hour).padStart(2, '0')}:${String(info.minute).padStart(2, '0')}`);
+        const vedicLine = appState.worldShowVedic
+          ? `<div class="city-vedic-sub"><span>${formatDigits(info.vedic.ghati, 2)} Ghaṭī : ${formatDigits(info.vedic.pala, 2)} Pala</span><span style="opacity:0.7;">(Civil Anchor)</span></div>`
+          : '';
+
+        return `
+          <div class="city-row">
+            <div class="city-meta">
+              <div class="city-offset-line">${info.dayLabel}, ${info.tzOffsetLabel}</div>
+              <div class="city-name">${city.name}</div>
+              ${vedicLine}
+            </div>
+            <div class="city-time-right">
+              <div class="city-civil-digits">${civilHm}</div>
+              <button type="button" class="delete-icon-btn" data-remove-city="${idx}" aria-label="Remove ${city.name}">×</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    let alarmInputMode = 'vedic';
+    let lastTriggeredAlarmKey = '';
+
+    function updateAlarmFormPreview() {
+      let ghati = 0;
+      let pala = 0;
+      if (alarmInputMode === 'vedic') {
+        ghati = Math.min(59, Math.max(0, Number(el('alarmGhatiInput').value) || 0));
+        pala = Math.min(59, Math.max(0, Number(el('alarmPalaInput').value) || 0));
+      } else {
+        const hh = Math.min(23, Math.max(0, Number(el('alarmHourInput').value) || 0));
+        const mm = Math.min(59, Math.max(0, Number(el('alarmMinInput').value) || 0));
+        const civilMs = (hh * 3600 + mm * 60) * 1000;
+        const anchorMs = appState.anchorMode === 'sunrise' ? VedicTimeEngine.getSunriseAnchorMs(new Date(), appState) : 0;
+        const vSnap = VedicTimeEngine.fromElapsedMs(civilMs - anchorMs);
+        ghati = vSnap.ghati;
+        pala = vSnap.pala;
+      }
+
+      const mapped = VedicTimeEngine.vedicAlarmToCivilTime(ghati, pala, appState);
+      const civilFormatted = `${String(mapped.hours).padStart(2, '0')}:${String(mapped.minutes).padStart(2, '0')}:${String(mapped.seconds).padStart(2, '0')}`;
+      const modeName = appState.anchorMode === 'sunrise' ? 'Sunrise Anchor' : 'Civil Midnight Anchor';
+      el('alarmMappingPreview').textContent =
+        `Maps to ${civilFormatted} local time (${String(ghati).padStart(2, '0')} Ghaṭī ${String(pala).padStart(2, '0')} Pala • ${modeName})`;
+    }
+
+    function renderAlarmsList() {
+      const container = el('alarmsListContainer');
+      if (!appState.alarms.length) {
+        container.innerHTML = `<div style="padding:14px 4px; color:var(--text-muted); font-size:0.84rem;">No alarms configured. Add one above.</div>`;
+        return;
+      }
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      container.innerHTML = appState.alarms.map((alm, idx) => {
+        const mapped = VedicTimeEngine.vedicAlarmToCivilTime(alm.ghati, alm.pala, appState);
+        const civilStr = `${String(mapped.hours).padStart(2, '0')}:${String(mapped.minutes).padStart(2, '0')}`;
+        const secSuffix = mapped.seconds > 0 ? `:${String(mapped.seconds).padStart(2, '0')}` : '';
+        const daysLabel = alm.days.length === 7 ? 'Every day' : alm.days.map(d => dayNames[d]).join(', ');
+
+        return `
+          <div class="alarm-row ${alm.enabled ? '' : 'alarm-disabled'}">
+            <div>
+              <div class="alarm-primary-time">${formatDigits(alm.ghati, 2)}G : ${formatDigits(alm.pala, 2)}P</div>
+              <div class="alarm-secondary-map">Local Civil Time: ${formatNumberString(civilStr + secSuffix)}</div>
+              <div class="alarm-label-days">${alm.label} • ${daysLabel}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <button type="button" class="switch ${alm.enabled ? 'on' : ''}" data-toggle-alarm="${idx}" aria-label="Toggle alarm"></button>
+              <button type="button" class="delete-icon-btn" data-delete-alarm="${idx}" aria-label="Delete alarm">×</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function checkActiveAlarms(now) {
+      const snap = VedicTimeEngine.computeCurrentVedic(now, appState);
+      const dayOfWeek = now.getDay();
+      const minuteKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${snap.ghati}-${snap.pala}`;
+
+      if (lastTriggeredAlarmKey === minuteKey) return;
+
+      for (const alm of appState.alarms) {
+        if (!alm.enabled) continue;
+        if (!alm.days.includes(dayOfWeek)) continue;
+        if (alm.ghati === snap.ghati && alm.pala === snap.pala && snap.vipala <= 2) {
+          lastTriggeredAlarmKey = minuteKey;
+          triggerRingingModal('VEDIC ALARM', alm.label, `${formatDigits(alm.ghati, 2)} Ghaṭī : ${formatDigits(alm.pala, 2)} Pala`);
+          break;
+        }
+      }
+    }
+
+    function triggerRingingModal(badge, title, subtitle) {
+      el('ringingBadge').textContent = badge;
+      el('ringingTitle').textContent = title;
+      el('ringingSubtitle').textContent = subtitle;
+      el('ringingModal').classList.add('open');
+      SoundEngine.playBell();
+    }
+
+    const StopwatchController = {
+      running: false,
+      startPerfMs: 0,
+      accumulatedMs: 0,
+      lastLapTotalMs: 0,
+      laps: [],
+
+      getElapsedMs() {
+        if (!this.running) return this.accumulatedMs;
+        return this.accumulatedMs + (performance.now() - this.startPerfMs);
+      },
+
+      toggleStartStop() {
+        if (!this.running) {
+          this.startPerfMs = performance.now();
+          this.running = true;
+        } else {
+          this.accumulatedMs += performance.now() - this.startPerfMs;
+          this.running = false;
+        }
+        this.syncButtons();
+        this.render();
+      },
+
+      lapOrReset() {
+        if (this.running) {
+          const totalMs = this.getElapsedMs();
+          const splitMs = totalMs - this.lastLapTotalMs;
+          this.lastLapTotalMs = totalMs;
+          this.laps.unshift({
+            number: this.laps.length + 1,
+            splitMs,
+            totalMs
+          });
+          this.renderLaps();
+        } else {
+          this.accumulatedMs = 0;
+          this.lastLapTotalMs = 0;
+          this.laps = [];
+          this.syncButtons();
+          this.render();
+          this.renderLaps();
+        }
+      },
+
+      syncButtons() {
+        const startBtn = el('btnSwStartStop');
+        const lapBtn = el('btnSwLapReset');
+        if (this.running) {
+          startBtn.textContent = 'Pause';
+          startBtn.className = 'round-action-btn round-btn-stop';
+          lapBtn.textContent = 'Lap';
+        } else {
+          startBtn.textContent = this.accumulatedMs > 0 ? 'Resume' : 'Start';
+          startBtn.className = 'round-action-btn round-btn-start';
+          lapBtn.textContent = this.accumulatedMs > 0 ? 'Reset' : 'Lap';
+        }
+      },
+
+      formatCivilMs(ms) {
+        const totalCentis = Math.floor(ms / 10);
+        const cs = totalCentis % 100;
+        const totalSecs = Math.floor(totalCentis / 100);
+        const s = totalSecs % 60;
+        const m = Math.floor(totalSecs / 60);
+        return formatNumberString(`${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`);
+      },
+
+      formatVedicMs(ms) {
+        const g = Math.floor(ms / KLOCK_CONSTANTS.MS_PER_GHATI);
+        const remG = ms % KLOCK_CONSTANTS.MS_PER_GHATI;
+        const p = Math.floor(remG / KLOCK_CONSTANTS.MS_PER_PALA);
+        const remP = remG % KLOCK_CONSTANTS.MS_PER_PALA;
+        const v = (remP / KLOCK_CONSTANTS.MS_PER_VIPALA).toFixed(1);
+        return formatNumberString(`${String(g).padStart(2, '0')} Ghaṭī : ${String(p).padStart(2, '0')} Pala : ${v.padStart(4, '0')} Vipala`);
+      },
+
+      render() {
+        const ms = this.getElapsedMs();
+        setTextIfChanged('swCivilDisplay', this.formatCivilMs(ms));
+        setTextIfChanged('swVedicDisplay', this.formatVedicMs(ms));
+      },
+
+      renderLaps() {
+        const tbody = el('swLapsBody');
+        el('swLapCountBadge').textContent = `${this.laps.length} Laps`;
+        if (!this.laps.length) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No laps recorded yet.</td></tr>`;
+          return;
+        }
+
+        let minSplit = Infinity;
+        let maxSplit = -Infinity;
+        if (this.laps.length >= 2) {
+          this.laps.forEach(l => {
+            if (l.splitMs < minSplit) minSplit = l.splitMs;
+            if (l.splitMs > maxSplit) maxSplit = l.splitMs;
+          });
+        }
+
+        tbody.innerHTML = this.laps.map(l => {
+          let cls = '';
+          if (this.laps.length >= 2) {
+            if (l.splitMs === minSplit) cls = 'lap-fastest';
+            else if (l.splitMs === maxSplit) cls = 'lap-slowest';
+          }
+          const p = Math.floor(l.splitMs / KLOCK_CONSTANTS.MS_PER_PALA);
+          const v = ((l.splitMs % KLOCK_CONSTANTS.MS_PER_PALA) / KLOCK_CONSTANTS.MS_PER_VIPALA).toFixed(1);
+          return `
+            <tr class="${cls}">
+              <td>#${l.number}</td>
+              <td>${this.formatCivilMs(l.splitMs)}</td>
+              <td>${p}P ${v}V</td>
+              <td>${this.formatCivilMs(l.totalMs)}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    };
+
+    const TimerController = {
+      running: false,
+      baseDurationMs: 1440000,
+      remainingMs: 1440000,
+      endPerfMs: 0,
+
+      setDurationFromMs(ms) {
+        const clamped = Math.max(400, Math.min(86400000 * 2, Math.round(ms)));
+        this.baseDurationMs = clamped;
+        this.remainingMs = clamped;
+        this.running = false;
+        this.syncInputsFromMs(clamped);
+        this.syncControls();
+        this.render();
+      },
+
+      syncInputsFromMs(ms) {
+        const g = Math.floor(ms / KLOCK_CONSTANTS.MS_PER_GHATI);
+        const remG = ms % KLOCK_CONSTANTS.MS_PER_GHATI;
+        const p = Math.floor(remG / KLOCK_CONSTANTS.MS_PER_PALA);
+        const v = Math.floor((remG % KLOCK_CONSTANTS.MS_PER_PALA) / KLOCK_CONSTANTS.MS_PER_VIPALA);
+
+        el('tmGhati').value = g;
+        el('tmPala').value = p;
+        el('tmVipala').value = v;
+
+        const totalSec = Math.round(ms / 1000);
+        el('tmHours').value = Math.floor(totalSec / 3600);
+        el('tmMinutes').value = Math.floor((totalSec % 3600) / 60);
+        el('tmSeconds').value = totalSec % 60;
+      },
+
+      toggleStartPause() {
+        if (!this.running) {
+          if (this.remainingMs <= 0) this.remainingMs = this.baseDurationMs;
+          this.endPerfMs = performance.now() + this.remainingMs;
+          this.running = true;
+        } else {
+          this.remainingMs = Math.max(0, this.endPerfMs - performance.now());
+          this.running = false;
+        }
+        this.syncControls();
+        this.render();
+      },
+
+      reset() {
+        this.running = false;
+        this.remainingMs = this.baseDurationMs;
+        this.syncControls();
+        this.render();
+      },
+
+      tick() {
+        if (!this.running) return;
+        const rem = this.endPerfMs - performance.now();
+        if (rem <= 0) {
+          this.remainingMs = 0;
+          this.running = false;
+          this.syncControls();
+          this.render();
+          el('timerStatusBadge').textContent = 'Completed';
+          triggerRingingModal('TIMER COMPLETE', 'Vedic Countdown Finished', '00 Ghaṭī : 00 Pala : 00 Vipala');
+          return;
+        }
+        this.remainingMs = rem;
+        this.render();
+      },
+
+      syncControls() {
+        const btn = el('btnTimerStartPause');
+        el('timerEditPanel').style.opacity = this.running ? '0.45' : '1';
+        el('timerEditPanel').style.pointerEvents = this.running ? 'none' : 'auto';
+        if (this.running) {
+          btn.textContent = 'Pause';
+          btn.className = 'round-action-btn round-btn-stop';
+          el('timerStatusBadge').textContent = 'Running';
+        } else {
+          btn.textContent = this.remainingMs < this.baseDurationMs && this.remainingMs > 0 ? 'Resume' : 'Start';
+          btn.className = 'round-action-btn round-btn-start';
+          el('timerStatusBadge').textContent = 'Ready';
+        }
+      },
+
+      render() {
+        const ms = this.remainingMs;
+        const hrs = Math.floor(ms / 3600000);
+        const mins = Math.floor((ms % 3600000) / 60000);
+        const secs = Math.floor((ms % 60000) / 1000);
+        const tenths = Math.floor((ms % 1000) / 100);
+
+        const civilStr = formatNumberString(
+          `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${tenths}`
+        );
+        setTextIfChanged('timerCivilRemain', civilStr);
+
+        const g = Math.floor(ms / KLOCK_CONSTANTS.MS_PER_GHATI);
+        const remG = ms % KLOCK_CONSTANTS.MS_PER_GHATI;
+        const p = Math.floor(remG / KLOCK_CONSTANTS.MS_PER_PALA);
+        const v = Math.floor((remG % KLOCK_CONSTANTS.MS_PER_PALA) / KLOCK_CONSTANTS.MS_PER_VIPALA);
+
+        const vedicStr = formatNumberString(
+          `${String(g).padStart(2, '0')} Ghaṭī : ${String(p).padStart(2, '0')} Pala : ${String(v).padStart(2, '0')} Vipala`
+        );
+        setTextIfChanged('timerVedicRemain', vedicStr);
+
+        const pct = this.baseDurationMs > 0 ? (ms / this.baseDurationMs) * 100 : 0;
+        el('timerProgressBar').style.width = `${Math.max(0, Math.min(100, pct)).toFixed(1)}%`;
+      }
+    };
+
+    function runAcceptanceSuite() {
+      const results = [];
+      function assert(name, condition) {
+        results.push(`${condition ? '✓ PASS' : '✗ FAIL'}: ${name}`);
+      }
+
+      const tMidnight = VedicTimeEngine.fromElapsedMs(0);
+      assert('1. Midnight resets to 0G 0P', tMidnight.ghati === 0 && tMidnight.pala === 0 && tMidnight.vipala === 0);
+
+      const t24m = VedicTimeEngine.fromElapsedMs(24 * 60 * 1000);
+      assert('2. 24 minutes = 1 Ghaṭī', t24m.ghati === 1 && t24m.pala === 0);
+
+      const t24s = VedicTimeEngine.fromElapsedMs(24 * 1000);
+      assert('3. 24 seconds = 1 Pala', t24s.ghati === 0 && t24s.pala === 1);
+
+      const t59p = VedicTimeEngine.fromElapsedMs(59 * 24000);
+      const t60p = VedicTimeEngine.fromElapsedMs(60 * 24000);
+      assert('4. 59 Pala + 1 Pala rolls to 1 Ghaṭī 0 Pala', t59p.pala === 59 && t60p.ghati === 1 && t60p.pala === 0);
+
+      const tEndOfDay = VedicTimeEngine.fromElapsedMs(86400000 - 1);
+      const tWrap = VedicTimeEngine.fromElapsedMs(86400000);
+      assert('5. 24h = 60 Ghaṭī cycle & clean wrap', tEndOfDay.ghati === 59 && tEndOfDay.pala === 59 && tWrap.ghati === 0);
+
+      assert('6. 1 Muhūrta = 48 minutes (2,880,000 ms)', KLOCK_CONSTANTS.MS_PER_MUHURTA === 48 * 60 * 1000);
+
+      const mumbaiWall = getZoneWallTime(new Date(), 'Asia/Kolkata');
+      assert('7–8. World Clock IANA offset & Ghaṭī valid', mumbaiWall.vedic.ghati >= 0 && mumbaiWall.vedic.ghati < 60);
+
+      el('acceptanceTestOutput').innerHTML = results.join('<br/>');
+    }
+
+    function switchScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === screenId));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.target === screenId));
+      el('btnOpenWidgets').classList.toggle('active', screenId === 'screen-widgets');
+      if (screenId === 'screen-world') renderWorldClockList(new Date());
+      if (screenId === 'screen-alarms') {
+        updateAlarmFormPreview();
+        renderAlarmsList();
+      }
+      renderMainClockAndWidgets(new Date());
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', () => switchScreen(btn.dataset.target));
+      });
+
+      el('btnOpenWidgets').addEventListener('click', () => switchScreen('screen-widgets'));
+      el('btnBackToClockFromWidgets').addEventListener('click', () => switchScreen('screen-vedic'));
+
+      el('btnOpenSettings').addEventListener('click', () => el('settingsModal').classList.add('open'));
+      el('btnCloseSettings').addEventListener('click', () => el('settingsModal').classList.remove('open'));
+      el('settingsModal').addEventListener('click', e => {
+        if (e.target === el('settingsModal')) el('settingsModal').classList.remove('open');
+      });
+
+      el('btnDismissRinging').addEventListener('click', () => el('ringingModal').classList.remove('open'));
+
+      document.querySelectorAll('[data-quick-theme]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.theme = btn.dataset.quickTheme;
+          StorageManager.save(appState);
+          applyVisualPreferences();
+        });
+      });
+
+      el('btnQuickOutline').addEventListener('click', () => {
+        appState.numeralStyle = appState.numeralStyle === 'outlined' ? 'solid' : 'outlined';
+        StorageManager.save(appState);
+        applyVisualPreferences();
+      });
+
+      el('btnSwitchAnchorInline').addEventListener('click', () => {
+        appState.anchorMode = appState.anchorMode === 'civil' ? 'sunrise' : 'civil';
+        StorageManager.save(appState);
+        applyVisualPreferences();
+      });
+
+      function updateFromVedicConverter() {
+        const g = Math.max(0, Number(el('convGhati').value) || 0);
+        const p = Math.max(0, Number(el('convPala').value) || 0);
+        const totalMin = g * 24 + (p * 0.4);
+        const hrs = Math.floor(totalMin / 60);
+        const mins = Number((totalMin % 60).toFixed(2));
+        el('convHours').value = hrs;
+        el('convMinutes').value = mins;
+        const totalSecs = Math.round((g * 1440) + (p * 24));
+        const muhurtas = ((g + p / 60) / 2).toFixed(2);
+        el('convSummaryText').textContent =
+          `${g} Ghaṭī ${p} Pala = ${muhurtas} Muhūrta = ${hrs}h ${mins}m (${totalSecs.toLocaleString()} sec)`;
+      }
+
+      function updateFromModernConverter() {
+        const hrs = Math.max(0, Number(el('convHours').value) || 0);
+        const mins = Math.max(0, Number(el('convMinutes').value) || 0);
+        const totalSecs = hrs * 3600 + mins * 60;
+        const g = Math.floor(totalSecs / 1440);
+        const p = Number(((totalSecs % 1440) / 24).toFixed(1));
+        el('convGhati').value = g;
+        el('convPala').value = p;
+        const muhurtas = ((g + p / 60) / 2).toFixed(2);
+        el('convSummaryText').textContent =
+          `${hrs}h ${mins}m = ${g} Ghaṭī ${p} Pala = ${muhurtas} Muhūrta (${Math.round(totalSecs).toLocaleString()} sec)`;
+      }
+
+      el('convGhati').addEventListener('input', updateFromVedicConverter);
+      el('convPala').addEventListener('input', updateFromVedicConverter);
+      el('convHours').addEventListener('input', updateFromModernConverter);
+      el('convMinutes').addEventListener('input', updateFromModernConverter);
+
+      el('btnToggleWorldVedic').addEventListener('click', () => {
+        appState.worldShowVedic = !appState.worldShowVedic;
+        el('btnToggleWorldVedic').textContent = `Ghaṭī: ${appState.worldShowVedic ? 'ON' : 'OFF'}`;
+        el('btnToggleWorldVedic').classList.toggle('active', appState.worldShowVedic);
+        StorageManager.save(appState);
+        renderWorldClockList(new Date());
+      });
+
+      el('btnAddCity').addEventListener('click', () => {
+        const val = el('cityAddSelect').value;
+        if (!val) return;
+        const [name, tz] = val.split('|');
+        if (!appState.cities.some(c => c.name === name && c.tz === tz)) {
+          appState.cities.push({ name, tz });
+          StorageManager.save(appState);
+          renderWorldClockList(new Date());
+        }
+        el('cityAddSelect').value = '';
+      });
+
+      el('worldClockList').addEventListener('click', e => {
+        const btn = e.target.closest('[data-remove-city]');
+        if (!btn) return;
+        const idx = Number(btn.dataset.removeCity);
+        appState.cities.splice(idx, 1);
+        StorageManager.save(appState);
+        renderWorldClockList(new Date());
+      });
+
+      document.querySelectorAll('[data-alarm-mode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          alarmInputMode = btn.dataset.alarmMode;
+          document.querySelectorAll('[data-alarm-mode]').forEach(b => b.classList.toggle('active', b === btn));
+          el('alarmVedicInputs').style.display = alarmInputMode === 'vedic' ? 'grid' : 'none';
+          el('alarmCivilInputs').style.display = alarmInputMode === 'civil' ? 'grid' : 'none';
+          updateAlarmFormPreview();
+        });
+      });
+
+      ['alarmGhatiInput', 'alarmPalaInput', 'alarmHourInput', 'alarmMinInput'].forEach(id => {
+        el(id).addEventListener('input', updateAlarmFormPreview);
+      });
+
+      el('alarmDaySelector').addEventListener('click', e => {
+        const pill = e.target.closest('.day-pill');
+        if (pill) pill.classList.toggle('selected');
+      });
+
+      el('btnTestChime').addEventListener('click', () => SoundEngine.playBell());
+
+      el('btnSaveAlarm').addEventListener('click', () => {
+        let ghati = 0;
+        let pala = 0;
+        if (alarmInputMode === 'vedic') {
+          ghati = Math.min(59, Math.max(0, Math.floor(Number(el('alarmGhatiInput').value) || 0)));
+          pala = Math.min(59, Math.max(0, Math.floor(Number(el('alarmPalaInput').value) || 0)));
+        } else {
+          const hh = Math.min(23, Math.max(0, Math.floor(Number(el('alarmHourInput').value) || 0)));
+          const mm = Math.min(59, Math.max(0, Math.floor(Number(el('alarmMinInput').value) || 0)));
+          const civilMs = (hh * 3600 + mm * 60) * 1000;
+          const anchorMs = appState.anchorMode === 'sunrise' ? VedicTimeEngine.getSunriseAnchorMs(new Date(), appState) : 0;
+          const snap = VedicTimeEngine.fromElapsedMs(civilMs - anchorMs);
+          ghati = snap.ghati;
+          pala = snap.pala;
+        }
+
+        const selectedDays = Array.from(document.querySelectorAll('#alarmDaySelector .day-pill.selected'))
+          .map(b => Number(b.dataset.day));
+
+        appState.alarms.push({
+          id: 'alm-' + Date.now(),
+          ghati,
+          pala,
+          label: el('alarmLabelInput').value.trim() || 'Vedic Alarm',
+          days: selectedDays.length ? selectedDays : [0, 1, 2, 3, 4, 5, 6],
+          enabled: true
+        });
+        StorageManager.save(appState);
+        renderAlarmsList();
+        SoundEngine.playBell();
+      });
+
+      el('alarmsListContainer').addEventListener('click', e => {
+        const toggleBtn = e.target.closest('[data-toggle-alarm]');
+        if (toggleBtn) {
+          const idx = Number(toggleBtn.dataset.toggleAlarm);
+          appState.alarms[idx].enabled = !appState.alarms[idx].enabled;
+          StorageManager.save(appState);
+          renderAlarmsList();
+          return;
+        }
+        const delBtn = e.target.closest('[data-delete-alarm]');
+        if (delBtn) {
+          const idx = Number(delBtn.dataset.deleteAlarm);
+          appState.alarms.splice(idx, 1);
+          StorageManager.save(appState);
+          renderAlarmsList();
+        }
+      });
+
+      el('btnSwStartStop').addEventListener('click', () => StopwatchController.toggleStartStop());
+      el('btnSwLapReset').addEventListener('click', () => StopwatchController.lapOrReset());
+
+      ['tmGhati', 'tmPala', 'tmVipala'].forEach(id => {
+        el(id).addEventListener('input', () => {
+          const ms = VedicTimeEngine.vedicToMs(el('tmGhati').value, el('tmPala').value, el('tmVipala').value);
+          TimerController.setDurationFromMs(ms);
+        });
+      });
+
+      ['tmHours', 'tmMinutes', 'tmSeconds'].forEach(id => {
+        el(id).addEventListener('input', () => {
+          const h = Math.max(0, Number(el('tmHours').value) || 0);
+          const m = Math.max(0, Number(el('tmMinutes').value) || 0);
+          const s = Math.max(0, Number(el('tmSeconds').value) || 0);
+          TimerController.setDurationFromMs((h * 3600 + m * 60 + s) * 1000);
+        });
+      });
+
+      document.querySelectorAll('[data-preset-ms]').forEach(chip => {
+        chip.addEventListener('click', () => TimerController.setDurationFromMs(Number(chip.dataset.presetMs)));
+      });
+
+      el('btnTimerStartPause').addEventListener('click', () => TimerController.toggleStartPause());
+      el('btnTimerReset').addEventListener('click', () => TimerController.reset());
+
+      document.querySelectorAll('[data-w-theme]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.widgetPrefs.style = btn.dataset.wTheme;
+          StorageManager.save(appState);
+          applyVisualPreferences();
+        });
+      });
+
+      el('wToggleVipala').addEventListener('click', () => {
+        appState.widgetPrefs.showVipala = !appState.widgetPrefs.showVipala;
+        StorageManager.save(appState);
+        applyVisualPreferences();
+      });
+
+      el('wToggleDeva').addEventListener('click', () => {
+        appState.widgetPrefs.showDeva = !appState.widgetPrefs.showDeva;
+        StorageManager.save(appState);
+        applyVisualPreferences();
+      });
+
+      document.querySelectorAll('[data-set-theme]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.theme = btn.dataset.setTheme;
+          StorageManager.save(appState);
+          applyVisualPreferences();
+        });
+      });
+
+      document.querySelectorAll('[data-set-mode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.mode = btn.dataset.setMode;
+          StorageManager.save(appState);
+          applyVisualPreferences();
+        });
+      });
+
+      document.querySelectorAll('#accentSwatchGroup .color-swatch').forEach(sw => {
+        sw.addEventListener('click', () => {
+          appState.accent = sw.dataset.accent;
+          appState.accentRgb = sw.dataset.rgb;
+          StorageManager.save(appState);
+          applyVisualPreferences();
+        });
+      });
+
+      el('selectFontScale').addEventListener('change', e => {
+        appState.fontScale = e.target.value;
+        StorageManager.save(appState);
+        applyVisualPreferences();
+      });
+
+      document.querySelectorAll('[data-set-numerals]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.numeralScript = btn.dataset.setNumerals;
+          StorageManager.save(appState);
+          applyVisualPreferences();
+          renderWorldClockList(new Date());
+          renderAlarmsList();
+        });
+      });
+
+      el('toggleDevaLabels').addEventListener('click', () => {
+        appState.showDevaLabels = !appState.showDevaLabels;
+        StorageManager.save(appState);
+        applyVisualPreferences();
+      });
+
+      el('toggleShowVipala').addEventListener('click', () => {
+        appState.showVipala = !appState.showVipala;
+        StorageManager.save(appState);
+        applyVisualPreferences();
+      });
+
+      document.querySelectorAll('[data-set-anchor]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          appState.anchorMode = btn.dataset.setAnchor;
+          StorageManager.save(appState);
+          applyVisualPreferences();
+          updateAlarmFormPreview();
+          renderAlarmsList();
+        });
+      });
+
+      el('inputLat').value = appState.latitude;
+      el('inputLon').value = appState.longitude;
+      el('manualSunriseInput').value = appState.manualSunrise;
+
+      ['inputLat', 'inputLon', 'manualSunriseInput'].forEach(id => {
+        el(id).addEventListener('input', () => {
+          appState.latitude = Number(el('inputLat').value) || 0;
+          appState.longitude = Number(el('inputLon').value) || 0;
+          appState.manualSunrise = el('manualSunriseInput').value;
+          StorageManager.save(appState);
+          applyVisualPreferences();
+        });
+      });
+
+      el('btnUseGeo').addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          alert('Geolocation is not supported in this browser context.');
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            appState.latitude = Number(pos.coords.latitude.toFixed(4));
+            appState.longitude = Number(pos.coords.longitude.toFixed(4));
+            el('inputLat').value = appState.latitude;
+            el('inputLon').value = appState.longitude;
+            StorageManager.save(appState);
+            applyVisualPreferences();
+          },
+          () => alert('Location permission denied or unavailable. Enter Latitude/Longitude manually.')
+        );
+      });
+
+      el('btnRunAcceptanceTests').addEventListener('click', runAcceptanceSuite);
+
+      // Native Android Pin-Widget Bridge Handler
+      document.querySelectorAll('[data-pin-widget]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const variant = btn.dataset.pinWidget;
+          if (window.AndroidWidgetBridge && typeof window.AndroidWidgetBridge.requestPinWidget === 'function') {
+            window.AndroidWidgetBridge.requestPinWidget(variant);
+          } else {
+            alert('Native Widget Pinning requires the compiled Klock Android APK (with AppWidgetProvider receivers in AndroidManifest.xml). In a browser or basic HTML-to-APK wrapper, native home-screen widgets are not registered.');
+          }
+        });
+      });
+
+      // Register Service Worker if hosted over HTTPS / localhost
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    }
+
+    let lastWorldSecond = -1;
+    function masterTick() {
+      if (document.hidden) return;
+      const now = new Date();
+      renderMainClockAndWidgets(now);
+      checkActiveAlarms(now);
+
+      if (StopwatchController.running) StopwatchController.render();
+      if (TimerController.running) TimerController.tick();
+
+      const sec = now.getSeconds();
+      if (sec !== lastWorldSecond) {
+        lastWorldSecond = sec;
+        if (el('screen-world').classList.contains('active')) {
+          renderWorldClockList(now);
+        }
+      }
+    }
+
+    applyVisualPreferences();
+    bindEvents();
+    renderWorldClockList(new Date());
+    renderAlarmsList();
+    TimerController.render();
+    masterTick();
+    setInterval(masterTick, 100);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) masterTick();
+    });
+  </script>
+</body>
+</html>
